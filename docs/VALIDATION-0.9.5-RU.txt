@@ -1,0 +1,31 @@
+AstraTerra Casino 0.9.5 — отчёт автономной проверки
+Дата сборки: 2026-07-02
+Целевая платформа: Minecraft 1.20.1 / Fabric / Java 17
+
+1. Сборка и структура
+- Production JAR создан: PASS
+- fabric.mod.json: id=astraterra-casino, version=0.9.5+1.20.1: PASS
+- Java classfile major version 61 (Java 17): PASS
+- JAR проходит полную проверку unzip -t: PASS
+- Source ZIP проходит unzip -t: PASS
+- Release ZIP проходит unzip -t: PASS
+- Тестовые и stub-классы в production JAR отсутствуют: PASS
+
+2. Ресурсы Колеса экспедиции
+- wheel.png 512x512 RGBA: PASS
+- pointer.png 96x96 RGBA: PASS
+- hub.png 128x128 RGBA: PASS
+- sector_glow.png 512x512 RGBA: PASS
+- sounds.json синтаксически корректен: PASS
+- 5 OGG-файлов: Vorbis, 44.1 kHz, mono: PASS
+- ru_ru.json и en_us.json синтаксически корректны: PASS
+
+3. Автономные тесты, прогон A: PASS
+4. Автономные тесты, прогон B: PASS
+5. Результат двух прогонов идентичен: PASS
+
+SHA-256 production JAR:
+16c126030a9e8dec5753574313234ae9349ca3c8c017a004d655c6c822471dd5
+
+Ограничение проверки:
+Полноценный запуск Minecraft через Fabric Loom runClient и запуск внутри конкретной пользовательской сборки из 299 модов в этой среде не выполнялись. Первый запуск в реальной сборке остаётся интеграционным тестом.
