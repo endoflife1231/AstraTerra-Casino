@@ -1,0 +1,205 @@
+name: Finalize v0.9.5
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download and verify release archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 4 --retry-delay 2 \
+            --output /tmp/AstraTerra-Casino-0.9.5-release.zip \
+            https://astraterra-release-transfer.vercel.app/AstraTerra-Casino-0.9.5-release.zip
+          echo "63698f379a4475dd751687d46793d83ec526c704ffdda69bcf61f9fe5afbe63d  /tmp/AstraTerra-Casino-0.9.5-release.zip" | sha256sum --check --strict
+          rm -rf /tmp/astraterra-release /tmp/astraterra-sources
+          mkdir -p /tmp/astraterra-release /tmp/astraterra-sources
+          unzip -q /tmp/AstraTerra-Casino-0.9.5-release.zip -d /tmp/astraterra-release
+
+          JAR_FILE="$(find /tmp/astraterra-release -type f -name 'astraterra-casino-0.9.5+mc1.20.1.jar' -print -quit)"
+          SOURCES_FILE="$(find /tmp/astraterra-release -type f -name 'astraterra-casino-0.9.5-sources.zip' -print -quit)"
+          test -n "$JAR_FILE" && test -f "$JAR_FILE"
+          test -n "$SOURCES_FILE" && test -f "$SOURCES_FILE"
+          echo "16c126030a9e8dec5753574313234ae9349ca3c8c017a004d655c6c822471dd5  $JAR_FILE" | sha256sum --check --strict
+          echo "d9e3a49612e18de93cfac1de7fa676b5638ca1313c10870c0a45e502ad9de985  $SOURCES_FILE" | sha256sum --check --strict
+          unzip -q "$SOURCES_FILE" -d /tmp/astraterra-sources
+
+          FABRIC_MOD="$(find /tmp/astraterra-sources -type f -path '*/src/main/resources/fabric.mod.json' -print -quit)"
+          test -n "$FABRIC_MOD" && test -f "$FABRIC_MOD"
+          PROJECT_ROOT="$(dirname "$(dirname "$(dirname "$(dirname "$FABRIC_MOD")")")")"
+          test -d "$PROJECT_ROOT/src"
+
+          echo "JAR_FILE=$JAR_FILE" >> "$GITHUB_ENV"
+          echo "SOURCES_FILE=$SOURCES_FILE" >> "$GITHUB_ENV"
+          echo "PROJECT_ROOT=$PROJECT_ROOT" >> "$GITHUB_ENV"
+
+      - name: Publish clean repository tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .release-parts src docs releases
+          mkdir -p docs/development docs/validation releases/v0.9.5
+
+          cp -a "$PROJECT_ROOT/src" ./src
+
+          copy_doc() {
+            local source_name="$1"
+            local destination="$2"
+            local source_path
+            source_path="$(find "$PROJECT_ROOT" -maxdepth 2 -type f -name "$source_name" -print -quit)"
+            if [[ -n "$source_path" ]]; then
+              cp "$source_path" "$destination"
+            fi
+          }
+
+          copy_doc 'README-0.9.5-RU.md' 'docs/README-0.9.5-RU.md'
+          copy_doc 'WHEEL-SPEC-RU.md' 'docs/development/WHEEL-SPEC-RU.md'
+          copy_doc 'VALIDATION-0.9.5-RU.txt' 'docs/validation/VALIDATION-0.9.5-RU.txt'
+
+          cp "$JAR_FILE" 'releases/v0.9.5/astraterra-casino-0.9.5+mc1.20.1.jar'
+          cp "$SOURCES_FILE" 'releases/v0.9.5/astraterra-casino-0.9.5-sources.zip'
+          cp '/tmp/AstraTerra-Casino-0.9.5-release.zip' 'releases/v0.9.5/AstraTerra-Casino-0.9.5-release.zip'
+
+          cat > releases/v0.9.5/RELEASE-NOTES.md <<'EOF'
+          # AstraTerra Casino 0.9.5 — Expedition Wheel
+
+          Публичный релиз мода AstraTerra Casino для Minecraft 1.20.1 и Fabric.
+
+          ## Файлы
+
+          - `astraterra-casino-0.9.5+mc1.20.1.jar` — готовый мод для установки.
+          - `astraterra-casino-0.9.5-sources.zip` — архив исходного кода.
+          - `AstraTerra-Casino-0.9.5-release.zip` — полный комплект релиза с документацией и отчётами проверки.
+
+          ## Установка
+
+          1. Установите Minecraft 1.20.1 и Fabric Loader.
+          2. Установите зависимости, указанные в документации проекта.
+          3. Поместите JAR-файл мода в папку `.minecraft/mods`.
+          4. Запустите игру через профиль Fabric.
+
+          ## Проверка целостности
+
+          Контрольные суммы SHA-256 опубликованы в `SHA256SUMS.txt`.
+
+          ## Важное ограничение
+
+          Репозиторий содержит исходный код, однако воспроизводимая сборка через Gradle/Loom в версии 0.9.5 не настроена. Готовый JAR проверен отдельно и распространяется как релизный бинарный файл.
+          EOF
+
+          sed -i 's/^          //' releases/v0.9.5/RELEASE-NOTES.md
+
+          cat > releases/v0.9.5/README.md <<'EOF'
+          # Release v0.9.5
+
+          В этом каталоге хранится зафиксированная копия пользовательского релиза 0.9.5.
+
+          Для обычной установки используйте JAR-файл. Полный ZIP и архив исходников предназначены для проверки, разработки и архивного хранения.
+          EOF
+          sed -i 's/^          //' releases/v0.9.5/README.md
+
+          (
+            cd releases/v0.9.5
+            sha256sum \
+              'astraterra-casino-0.9.5+mc1.20.1.jar' \
+              'astraterra-casino-0.9.5-sources.zip' \
+              'AstraTerra-Casino-0.9.5-release.zip' \
+              > SHA256SUMS.txt
+          )
+
+          cat > README.md <<'EOF'
+          # AstraTerra Casino
+
+          Мод с механикой **Expedition Wheel** для Minecraft 1.20.1 на Fabric.
+
+          ## Текущая версия
+
+          **0.9.5**
+
+          ## Для пользователей
+
+          Готовый JAR доступен на странице GitHub Releases в релизе `v0.9.5`.
+
+          Быстрая установка:
+
+          1. Установите Minecraft 1.20.1 и Fabric Loader.
+          2. Установите необходимые зависимости из документации.
+          3. Скопируйте `astraterra-casino-0.9.5+mc1.20.1.jar` в `.minecraft/mods`.
+          4. Запустите игру через Fabric.
+
+          ## Содержимое репозитория
+
+          - `src/` — исходный код и ресурсы мода;
+          - `docs/` — документация, спецификация и результаты проверки;
+          - `releases/v0.9.5/` — зафиксированные релизные файлы и SHA-256;
+          - `CHANGELOG.md` — история изменений;
+          - `LICENSE` — лицензия проекта;
+          - `ASSET-LICENSES-RU.md` — сведения о лицензиях ресурсов;
+          - `BUILD-NOTES-RU.md` — примечания по сборке.
+
+          ## Сборка
+
+          В версии 0.9.5 воспроизводимая сборка через Gradle/Loom не настроена. Исходный код опубликован для аудита и дальнейшей разработки; официальный готовый JAR распространяется через GitHub Releases.
+
+          ## Контроль целостности
+
+          Контрольные суммы релизных файлов находятся в `releases/v0.9.5/SHA256SUMS.txt`.
+          EOF
+          sed -i 's/^          //' README.md
+
+      - name: Commit repository contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m 'release: publish AstraTerra Casino v0.9.5'
+            git push origin HEAD:main
+          fi
+
+      - name: Create tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git tag --force v0.9.5
+          git push origin v0.9.5 --force
+
+          ASSETS=(
+            'releases/v0.9.5/astraterra-casino-0.9.5+mc1.20.1.jar'
+            'releases/v0.9.5/astraterra-casino-0.9.5-sources.zip'
+            'releases/v0.9.5/AstraTerra-Casino-0.9.5-release.zip'
+            'releases/v0.9.5/SHA256SUMS.txt'
+          )
+
+          if gh release view v0.9.5 >/dev/null 2>&1; then
+            gh release edit v0.9.5 \
+              --title 'AstraTerra Casino 0.9.5 — Expedition Wheel' \
+              --notes-file 'releases/v0.9.5/RELEASE-NOTES.md' \
+              --latest
+            gh release upload v0.9.5 "${ASSETS[@]}" --clobber
+          else
+            gh release create v0.9.5 "${ASSETS[@]}" \
+              --title 'AstraTerra Casino 0.9.5 — Expedition Wheel' \
+              --notes-file 'releases/v0.9.5/RELEASE-NOTES.md' \
+              --latest
+          fi
