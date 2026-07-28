@@ -1,0 +1,32 @@
+name: Verify release transport
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download candidate archive
+        shell: bash
+        run: |
+          set -u
+          urls=(
+            'https://astraterra-release-direct-public-end0fl1fe.vercel.app/AstraTerra-Casino-0.9.5-release(3).zip'
+            'https://astraterra-release-direct-public-end0fl1fe.vercel.app/AstraTerra-Casino-0.9.5-release.zip'
+            'https://astraterra-release-direct-public-end0fl1fe.vercel.app/'
+          )
+          for url in "${urls[@]}"; do
+            echo "=== $url ==="
+            rm -f /tmp/candidate.bin /tmp/headers.txt
+            curl --location --silent --show-error --dump-header /tmp/headers.txt --output /tmp/candidate.bin "$url" || true
+            cat /tmp/headers.txt || true
+            wc -c /tmp/candidate.bin || true
+            sha256sum /tmp/candidate.bin || true
+            file /tmp/candidate.bin || true
+          done
