@@ -1,0 +1,37 @@
+name: Diagnose release parts
+
+on:
+  push:
+    branches: [release-v0.9.5-final]
+    paths:
+      - '.release-parts/DIAG'
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Record chunk metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          : > chunk-report.txt
+          for i in $(seq -w 0 37); do
+            p=".release-parts/chunk${i}"
+            if [[ -f "$p" ]]; then
+              printf '%s %s %s\n' "$i" "$(wc -c < "$p")" "$(git hash-object "$p")" >> chunk-report.txt
+            else
+              printf '%s MISSING -\n' "$i" >> chunk-report.txt
+            fi
+          done
+          cat chunk-report.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add chunk-report.txt
+          git commit -m 'diagnostics: record release chunk metadata' || exit 0
+          git push origin HEAD:release-v0.9.5-final
