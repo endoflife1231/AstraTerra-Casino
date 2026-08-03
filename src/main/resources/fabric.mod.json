@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "astraterra-casino",
+  "version": "0.9.5+1.20.1",
+  "name": "AstraTerra Casino",
+  "description": "Server-authoritative adaptive inventory casino with an animated Expedition Wheel, Numismatic stakes, private poker and Durak rooms, and FTB Quests statistics.",
+  "authors": [
+    "AstraTerra Project"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/astraterra-casino/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "dev.astraterra.casino.AstraTerraCasino"
+    ],
+    "client": [
+      "dev.astraterra.casino.AstraTerraCasinoClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.3",
+    "fabric-api": "*",
+    "minecraft": "1.20.1",
+    "java": ">=17",
+    "numismatic-overhaul": ">=0.2.17",
+    "owo": ">=0.11.2",
+    "ftbquests": ">=2001.1.0",
+    "ftblibrary": "*",
+    "ftbteams": "*"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "wheel_tick": {"sounds": [{"name": "astraterra-casino:wheel_tick", "stream": false}]},
+  "wheel_stop": {"sounds": [{"name": "astraterra-casino:wheel_stop", "stream": false}]},
+  "wheel_win": {"sounds": [{"name": "astraterra-casino:wheel_win", "stream": false}]},
+  "wheel_jackpot": {"sounds": [{"name": "astraterra-casino:wheel_jackpot", "stream": false}]},
+  "wheel_loss": {"sounds": [{"name": "astraterra-casino:wheel_loss", "stream": false}]}
+}
