@@ -4,6 +4,20 @@
 
 A server-authoritative casino mod for **Minecraft 1.20.1**, built for **Fabric** and **Java 17**. Version 0.9.5 includes blackjack, private poker and Durak rooms, and the animated Expedition Wheel with Numismatic Overhaul currency support and FTB Quests statistics.
 
+## Screenshots
+
+### Expedition Wheel and club wallet
+
+![Expedition Wheel interface with the server-synchronized club wallet](docs/images/expedition-wheel.png)
+
+### Dice game
+
+![Dice game interface with betting controls](docs/images/dice-game.png)
+
+### Club access from the player inventory
+
+<img src="docs/images/club-entry.png" alt="AstraTerra Club button in the Minecraft player inventory" width="420">
+
 ## Download
 
 Download the ready-to-use mod from [GitHub Releases](https://github.com/endoflife1231/AstraTerra-Casino/releases). Players only need the file named `astraterra-casino-0.9.5+mc1.20.1.jar`; the automatically generated “Source code” archives are for developers.
